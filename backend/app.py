@@ -17,7 +17,11 @@ app = FastAPI(title="Nilkamal Store Dashboard API", version="1.0.0")
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",  # Vite dev server
+        "http://localhost:3000",  # Alternative dev server
+        "https://neelkaml-dashboard.vercel.app"  # Production deployment
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
