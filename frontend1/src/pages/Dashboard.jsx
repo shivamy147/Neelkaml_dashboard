@@ -11,6 +11,7 @@ import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
+import { StatCardSkeleton, ChartSkeleton, TableSkeleton } from '../components/Skeleton';
 
 const Dashboard = () => {
   const { storeId } = useParams();
@@ -91,8 +92,84 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-xl text-gray-600">Loading dashboard...</div>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header - Always visible */}
+        <header className="bg-white shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between py-4">
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={() => navigate(-1)}
+                  className="p-2 hover:bg-gray-100 rounded-lg"
+                >
+                  <ArrowLeft className="w-5 h-5 text-gray-600" />
+                </button>
+                <div>
+                  <div className="bg-gray-200 h-6 w-48 rounded animate-pulse mb-1"></div>
+                  <div className="bg-gray-200 h-4 w-32 rounded animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Date Filter - Always visible */}
+            <div className="border-t border-gray-200 py-4">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700">From:</label>
+                  <input
+                    type="date"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    disabled
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 opacity-50"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700">To:</label>
+                  <input
+                    type="date"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    disabled
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 opacity-50"
+                  />
+                </div>
+                <button
+                  disabled
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium opacity-50 cursor-not-allowed"
+                >
+                  Loading...
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Skeleton for Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {[1, 2, 3, 4].map((i) => (
+              <StatCardSkeleton key={i} />
+            ))}
+          </div>
+
+          {/* Skeleton for Tabs */}
+          <div className="bg-white rounded-lg shadow-sm mb-8">
+            <div className="border-b border-gray-200 p-4">
+              <div className="flex space-x-8">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-gray-200 h-4 w-20 rounded animate-pulse"></div>
+                ))}
+              </div>
+            </div>
+            <div className="p-6">
+              <ChartSkeleton height="300px" />
+            </div>
+          </div>
+
+          {/* Skeleton for Table */}
+          <TableSkeleton rows={6} columns={5} />
+        </main>
       </div>
     );
   }

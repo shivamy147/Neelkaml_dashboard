@@ -6,6 +6,7 @@ import {
   IndianRupee, ArrowRight, MapPin, Plus, Store
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { StatCardSkeleton, StoreCardSkeleton } from '../components/Skeleton';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -111,17 +112,9 @@ const Home = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading stores...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header - Always visible */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
@@ -137,7 +130,8 @@ const Home = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowAddModal(true)}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                disabled={loading}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Store
@@ -152,7 +146,7 @@ const Home = () => {
             </div>
           </div>
           
-          {/* Date Filter */}
+          {/* Date Filter - Always visible */}
           <div className="border-t border-gray-200 py-4">
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
@@ -161,7 +155,8 @@ const Home = () => {
                   type="date"
                   value={fromDate}
                   onChange={(e) => setFromDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={loading}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -170,14 +165,16 @@ const Home = () => {
                   type="date"
                   value={toDate}
                   onChange={(e) => setToDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={loading}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 />
               </div>
               <button
                 onClick={handleApplyFilter}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                disabled={loading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Apply Filter
+                {loading ? 'Loading...' : 'Apply Filter'}
               </button>
               {(fromDate || toDate) && (
                 <button
@@ -185,7 +182,8 @@ const Home = () => {
                     handleClearFilter();
                     setTimeout(() => fetchStoresOverview(), 100);
                   }}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
+                  disabled={loading}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Clear Filter
                 </button>
@@ -196,8 +194,32 @@ const Home = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {loading ? (
+          // Skeleton Loading State
+          <div className="space-y-8">
+            {/* Summary Cards Skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <StatCardSkeleton key={i} />
+              ))}
+            </div>
+
+            {/* Store Cards Title Skeleton */}
+            <div className="flex items-center justify-between">
+              <div className="bg-gray-200 h-6 w-64 rounded animate-pulse"></div>
+            </div>
+            
+            {/* Store Cards Skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <StoreCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -343,7 +365,7 @@ const Home = () => {
         <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-600">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded bg-emerald-200 border border-emerald-400" />
-            <span>Profit (P&L &gt; ₹0)</span>
+            <span>Profit (P&amp;L &gt; ₹0)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded bg-amber-200 border border-amber-400" />
@@ -351,9 +373,11 @@ const Home = () => {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded bg-red-200 border border-red-400" />
-            <span>Loss (P&L &lt; ₹0)</span>
+            <span>Loss (P&amp;L &lt; ₹0)</span>
           </div>
         </div>
+          </>
+        )}
       </main>
 
       {/* Add Store Modal */}

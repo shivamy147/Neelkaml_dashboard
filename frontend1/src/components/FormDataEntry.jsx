@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { PRODUCTS_DATA, SOURCES, CATEGORIES } from '../data/productsData';
+import { FormSkeleton } from './Skeleton';
 
 const FormDataEntry = () => {
   const [loading, setLoading] = useState(false);
+  const [storesLoading, setStoresLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [stores, setStores] = useState([]);
   
@@ -40,6 +42,7 @@ const FormDataEntry = () => {
 
   const fetchStores = async () => {
     try {
+      setStoresLoading(true);
       const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/storeinfo`);
       if (response.data.success) {
         setStores(response.data.data || []);
@@ -47,6 +50,8 @@ const FormDataEntry = () => {
     } catch (error) {
       console.error('Error fetching stores:', error);
       toast.error('Failed to load stores');
+    } finally {
+      setStoresLoading(false);
     }
   };
 
@@ -170,11 +175,14 @@ const FormDataEntry = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Customer Visit Form</h1>
-            <p className="text-gray-600 mt-1">Enter customer and product details</p>
-          </div>
+        {storesLoading ? (
+          <FormSkeleton />
+        ) : (
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900">Customer Visit Form</h1>
+              <p className="text-gray-600 mt-1">Enter customer and product details</p>
+            </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Date and Day */}
@@ -537,6 +545,7 @@ const FormDataEntry = () => {
             </div>
           </form>
         </div>
+        )}
       </div>
     </div>
   );
