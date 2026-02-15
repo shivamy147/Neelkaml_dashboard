@@ -16,13 +16,13 @@ export const Skeleton = ({ className = "", width, height }) => {
 
 // Card skeleton for stats/metrics
 export const StatCardSkeleton = () => (
-  <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+  <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 sm:p-6">
     <div className="flex items-center justify-between">
       <div className="flex-1">
-        <Skeleton className="h-3 w-20 mb-3" />
-        <Skeleton className="h-8 w-24" />
+        <Skeleton className="h-3 w-16 sm:w-20 mb-2 sm:mb-3" />
+        <Skeleton className="h-6 sm:h-8 w-20 sm:w-24" />
       </div>
-      <Skeleton className="w-12 h-12 rounded-lg" />
+      <Skeleton className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg" />
     </div>
   </div>
 );
@@ -31,36 +31,36 @@ export const StatCardSkeleton = () => (
 export const StoreCardSkeleton = () => (
   <div className="bg-white rounded-lg border-2 border-gray-200 shadow-sm overflow-hidden">
     {/* Status Bar Skeleton */}
-    <div className="bg-gray-50 px-6 py-3 flex items-center justify-between">
+    <div className="bg-gray-50 px-4 sm:px-6 py-3 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <Skeleton className="w-5 h-5 rounded" />
-        <Skeleton className="h-4 w-20" />
+        <Skeleton className="w-4 sm:w-5 h-4 sm:h-5 rounded" />
+        <Skeleton className="h-3 sm:h-4 w-16 sm:w-20" />
       </div>
-      <Skeleton className="h-4 w-24" />
+      <Skeleton className="h-3 sm:h-4 w-20 sm:w-24" />
     </div>
 
     {/* Store Info Skeleton */}
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <div className="flex items-start justify-between mb-4">
         <div>
-          <Skeleton className="h-6 w-32 mb-2" />
-          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-5 sm:h-6 w-24 sm:w-32 mb-2" />
+          <Skeleton className="h-3 sm:h-4 w-36 sm:w-48" />
         </div>
-        <Skeleton className="h-8 w-24 rounded-md" />
+        <Skeleton className="h-7 sm:h-8 w-20 sm:w-24 rounded-md" />
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4">
         {[1, 2, 3].map((i) => (
           <div key={i} className="text-center">
-            <Skeleton className="h-4 w-12 mb-1 mx-auto" />
-            <Skeleton className="h-6 w-16 mx-auto" />
+            <Skeleton className="h-3 sm:h-4 w-8 sm:w-12 mb-1 mx-auto" />
+            <Skeleton className="h-4 sm:h-6 w-12 sm:w-16 mx-auto" />
           </div>
         ))}
       </div>
 
-      <Skeleton className="h-4 w-full mb-2" />
-      <Skeleton className="h-4 w-3/4" />
+      <Skeleton className="h-3 sm:h-4 w-full mb-2" />
+      <Skeleton className="h-3 sm:h-4 w-3/4" />
     </div>
   </div>
 );

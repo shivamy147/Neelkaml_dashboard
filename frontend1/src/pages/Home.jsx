@@ -117,30 +117,32 @@ const Home = () => {
       {/* Header - Always visible */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-4 gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <img
                 src="https://customer-assets.emergentagent.com/job_25966e6c-95dc-4b4b-8eea-a1bb89d83ab3/artifacts/b4ukc74y_NILKAMAL_SLEEP_CTC_Horizontal_5d55e449-c026-4cb3-a9e7-1031813a203c_Logo.png"
                 alt="Nilkamal Sleep"
-                className="h-8 sm:h-10 object-contain"
+                className="h-6 sm:h-8 md:h-10 object-contain"
               />
               <div className="hidden md:block h-8 w-px bg-gray-200" />
-              <h1 className="hidden md:block text-xl font-bold text-gray-900">Store Network Overview</h1>
+              <h1 className="hidden sm:block text-lg md:text-xl font-bold text-gray-900">Store Network Overview</h1>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
               <button
                 onClick={() => setShowAddModal(true)}
                 disabled={loading}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Add Store
+                <span className="hidden sm:inline">Add Store</span>
+                <span className="sm:hidden">Add</span>
               </button>
               <button
                 onClick={() => navigate('/dashboard')}
-                className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                className="flex items-center justify-center px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm sm:text-base"
               >
-                View All Analytics
+                <span className="hidden sm:inline">View All Analytics</span>
+                <span className="sm:hidden">Analytics</span>
                 <ArrowRight className="w-4 h-4 ml-2" />
               </button>
             </div>
@@ -148,46 +150,48 @@ const Home = () => {
           
           {/* Date Filter - Always visible */}
           <div className="border-t border-gray-200 py-4">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">From:</label>
+            <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">From:</label>
                 <input
                   type="date"
                   value={fromDate}
                   onChange={(e) => setFromDate(e.target.value)}
                   disabled={loading}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">To:</label>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">To:</label>
                 <input
                   type="date"
                   value={toDate}
                   onChange={(e) => setToDate(e.target.value)}
                   disabled={loading}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 />
               </div>
-              <button
-                onClick={handleApplyFilter}
-                disabled={loading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? 'Loading...' : 'Apply Filter'}
-              </button>
-              {(fromDate || toDate) && (
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <button
-                  onClick={() => {
-                    handleClearFilter();
-                    setTimeout(() => fetchStoresOverview(), 100);
-                  }}
+                  onClick={handleApplyFilter}
                   disabled={loading}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Clear Filter
+                  {loading ? 'Loading...' : 'Apply Filter'}
                 </button>
-              )}
+                {(fromDate || toDate) && (
+                  <button
+                    onClick={() => {
+                      handleClearFilter();
+                      setTimeout(() => fetchStoresOverview(), 100);
+                    }}
+                    disabled={loading}
+                    className="w-full sm:w-auto px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Clear Filter
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -219,7 +223,7 @@ const Home = () => {
         ) : (
           <>
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -281,9 +285,9 @@ const Home = () => {
         </div>
 
         {/* Store Cards */}
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Store Health Dashboard</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Store Health Dashboard</h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {storesData?.stores?.map((store) => {
             const statusStyle = getStatusColor(store.status);
             const StatusIcon = statusStyle.icon;

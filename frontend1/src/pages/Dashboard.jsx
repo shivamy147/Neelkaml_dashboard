@@ -97,46 +97,46 @@ const Dashboard = () => {
         <header className="bg-white shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between py-4">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 sm:gap-4">
                 <button 
                   onClick={() => navigate(-1)}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
+                  className="p-2 hover:bg-gray-100 rounded-lg touch-manipulation"
                 >
                   <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </button>
                 <div>
-                  <div className="bg-gray-200 h-6 w-48 rounded animate-pulse mb-1"></div>
-                  <div className="bg-gray-200 h-4 w-32 rounded animate-pulse"></div>
+                  <div className="bg-gray-200 h-5 sm:h-6 w-32 sm:w-48 rounded animate-pulse mb-1"></div>
+                  <div className="bg-gray-200 h-3 sm:h-4 w-24 sm:w-32 rounded animate-pulse"></div>
                 </div>
               </div>
             </div>
             
             {/* Date Filter - Always visible */}
             <div className="border-t border-gray-200 py-4">
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700">From:</label>
+              <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">From:</label>
                   <input
                     type="date"
                     value={fromDate}
                     onChange={(e) => setFromDate(e.target.value)}
                     disabled
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 opacity-50"
+                    className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 opacity-50"
                   />
                 </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700">To:</label>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">To:</label>
                   <input
                     type="date"
                     value={toDate}
                     onChange={(e) => setToDate(e.target.value)}
                     disabled
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 opacity-50"
+                    className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 opacity-50"
                   />
                 </div>
                 <button
                   disabled
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium opacity-50 cursor-not-allowed"
+                  className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium opacity-50 cursor-not-allowed"
                 >
                   Loading...
                 </button>
@@ -147,7 +147,7 @@ const Dashboard = () => {
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Skeleton for Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
             {[1, 2, 3, 4].map((i) => (
               <StatCardSkeleton key={i} />
             ))}
@@ -199,76 +199,76 @@ const Dashboard = () => {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-4 gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <button
                 onClick={() => navigate('/')}
-                className="p-2 hover:bg-gray-100 rounded-lg"
+                className="p-2 hover:bg-gray-100 rounded-lg touch-manipulation"
               >
                 <ArrowLeft className="w-5 h-5 text-gray-600" />
               </button>
               <img
                 src="https://customer-assets.emergentagent.com/job_25966e6c-95dc-4b4b-8eea-a1bb89d83ab3/artifacts/b4ukc74y_NILKAMAL_SLEEP_CTC_Horizontal_5d55e449-c026-4cb3-a9e7-1031813a203c_Logo.png"
                 alt="Nilkamal Sleep"
-                className="h-8 sm:h-10 object-contain"
+                className="h-6 sm:h-8 md:h-10 object-contain"
               />
-              <div className="hidden md:block h-8 w-px bg-gray-200" />
+              <div className="hidden lg:block h-8 w-px bg-gray-200" />
               <div>
-                <h1 className="hidden md:block text-xl font-bold text-gray-900">
+                <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900">
                   {storeId && storeInfo ? storeInfo.name : 'All Stores'} - Analytics
                 </h1>
-                <p className="hidden md:block text-sm text-gray-600">
+                <p className="hidden sm:block text-xs sm:text-sm text-gray-600">
                   {storeId && storeInfo ? storeInfo.address : 'Complete network overview'}
                 </p>
               </div>
             </div>
             <button
               onClick={() => navigate('/')}
-              className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className="flex items-center px-3 sm:px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg text-sm sm:text-base w-full sm:w-auto justify-center sm:justify-start"
             >
               <HomeIcon className="w-4 h-4 mr-2" />
-              Back to Stores
+              <span className="hidden sm:inline">Back to Stores</span>
+              <span className="sm:hidden">Back</span>
             </button>
           </div>
           
           {/* Date Filter */}
           <div className="border-t border-gray-200 py-4">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">From:</label>
+            <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">From:</label>
                 <input
                   type="date"
                   value={fromDate}
                   onChange={(e) => setFromDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">To:</label>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">To:</label>
                 <input
                   type="date"
                   value={toDate}
                   onChange={(e) => setToDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <button
-                onClick={handleApplyFilter}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-              >
-                Apply Filter
-              </button>
-              {(fromDate || toDate) && (
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <button
-                  onClick={() => {
-                    handleClearFilter();
-                    setTimeout(() => fetchDashboardStats(), 100);
-                  }}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
+                  onClick={handleApplyFilter}
+                  className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                 >
-                  Clear Filter
+                  Apply Filter
                 </button>
-              )}
+                {(fromDate || toDate) && (
+                  <button
+                    onClick={handleClearFilter}
+                    className="w-full sm:w-auto px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

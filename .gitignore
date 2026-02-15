@@ -7,6 +7,10 @@ venv/
 .venv/
 *.sublime-project
 *.sublime-workspace
+build/
+dist/
+*.log
+*.lock
 
 # Dependencies
 node_modules/
