@@ -40,7 +40,7 @@ const FormDataEntry = () => {
 
   const fetchStores = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/storeinfo');
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/storeinfo`);
       if (response.data.success) {
         setStores(response.data.data || []);
       }
@@ -92,7 +92,7 @@ const FormDataEntry = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:8000/api/formdata', {
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/formdata`, {
         ...formData,
         net_sale_value: parseFloat(formData.net_sale_value) || 0,
         individual: parseInt(formData.individual) || 0,

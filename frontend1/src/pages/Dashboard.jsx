@@ -31,7 +31,7 @@ const Dashboard = () => {
 
   const fetchStoreInfo = async () => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/storeinfo/${storeId}`);
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/storeinfo/${storeId}`);
       if (response.data.success) {
         setStoreInfo(response.data.data);
       }
@@ -46,7 +46,7 @@ const Dashboard = () => {
       const params = new URLSearchParams();
       if (storeId) {
         // Get store name first
-        const storeResponse = await axios.get(`http://localhost:8000/api/storeinfo/${storeId}`);
+        const storeResponse = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/storeinfo/${storeId}`);
         if (storeResponse.data.success) {
           params.append('store_name', storeResponse.data.data.name);
         }
@@ -60,7 +60,7 @@ const Dashboard = () => {
         params.append('end_date', toDate);
       }
 
-      const response = await axios.get(`http://localhost:8000/api/statistics/dashboard?${params}`);
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/statistics/dashboard?${params}`);
       if (response.data.success) {
         setStats(response.data.data);
       }

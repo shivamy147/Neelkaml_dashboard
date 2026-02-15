@@ -37,7 +37,7 @@ const Home = () => {
         params.append('end_date', toDate);
       }
       
-      const response = await axios.get(`http://localhost:8000/api/statistics/stores-overview?${params}`);
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/statistics/stores-overview?${params}`);
       if (response.data.success) {
         setStoresData(response.data.data);
       }
@@ -69,7 +69,7 @@ const Home = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8000/api/storeinfo', formData);
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/storeinfo`, formData);
       if (response.data.success) {
         toast.success('Store added successfully!');
         setShowAddModal(false);
