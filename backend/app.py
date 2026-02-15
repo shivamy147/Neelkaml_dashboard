@@ -20,7 +20,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",  # Vite dev server
         "http://localhost:3000",  # Alternative dev server
-        "https://neelkaml-dashboard.vercel.app"  # Production deployment
+        "https://neelkaml-dashboard1.vercel.app"  # Production deployment
     ],
     allow_credentials=True,
     allow_methods=["*"],
