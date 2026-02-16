@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
   TrendingUp, TrendingDown, Target, Users, 
-  IndianRupee, ArrowRight, MapPin, Plus, Store
+  IndianRupee, ArrowRight, MapPin, Plus, Store, Edit3, Check, X
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { StatCardSkeleton, StoreCardSkeleton } from '../components/Skeleton';
@@ -15,6 +15,9 @@ const Home = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [editingStore, setEditingStore] = useState(null);
+  const [editValue, setEditValue] = useState('');
+  const [updating, setUpdating] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     fixedcost: 0,
@@ -79,6 +82,47 @@ const Home = () => {
       }
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to add store');
+    }
+  };
+
+  const startEditing = (store, e) => {
+    e.stopPropagation();
+    setEditingStore(store.id);
+    setEditValue(store.fixed_cost || store.fixedcost || 0);
+  };
+
+  const cancelEditing = (e) => {
+    e.stopPropagation();
+    setEditingStore(null);
+    setEditValue('');
+  };
+
+  const saveEdit = async (store, e) => {
+    e.stopPropagation();
+    if (!editValue || parseFloat(editValue) < 0) {
+      toast.error('Please enter a valid fixed cost');
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      const updateData = {
+        name: store.name,
+        fixedcost: parseFloat(editValue),
+        address: store.address
+      };
+      
+      const response = await axios.put(`${import.meta.env.VITE_BASE_URL}/api/storeinfo/${store.id}`, updateData);
+      if (response.data.success) {
+        toast.success('Fixed cost updated successfully!');
+        setEditingStore(null);
+        setEditValue('');
+        fetchStoresOverview();
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update store');
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -295,8 +339,8 @@ const Home = () => {
             return (
               <div
                 key={store.id}
-                className={`bg-white rounded-lg border-2 ${statusStyle.border} shadow-sm overflow-hidden hover:shadow-md transition-all cursor-pointer`}
-                onClick={() => navigate(`/dashboard/${store.id}`)}
+                className={`bg-white rounded-lg border-2 ${statusStyle.border} shadow-sm overflow-hidden hover:shadow-md transition-all ${editingStore === store.id ? '' : 'cursor-pointer'}`}
+                onClick={editingStore === store.id ? undefined : () => navigate(`/dashboard/${store.id}`)}
               >
                 {/* Status Bar */}
                 <div className={`${statusStyle.bg} px-6 py-3 flex items-center justify-between`}>
@@ -321,19 +365,62 @@ const Home = () => {
                         {store.address || store.location || 'No address'}
                       </p>
                     </div>
-                    <button className="px-3 py-1 text-sm border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50">
-                      View Details
-                      <ArrowRight className="w-3 h-3 inline ml-1" />
-                    </button>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={(e) => startEditing(store, e)}
+                        disabled={updating}
+                        className="px-2 py-1 text-sm border border-gray-300 text-gray-600 rounded-md hover:bg-gray-50 disabled:opacity-50 flex items-center gap-1"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        <span className="hidden sm:inline">Edit</span>
+                      </button>
+                      <button 
+                        onClick={() => navigate(`/dashboard/${store.id}`)}
+                        className="px-3 py-1 text-sm border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50"
+                      >
+                        View Details
+                        <ArrowRight className="w-3 h-3 inline ml-1" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Metrics Grid */}
                   <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100">
                     <div>
-                      <p className="text-xs text-gray-500 uppercase">Fixed Cost</p>
-                      <p className="text-sm font-semibold text-gray-700 mt-1">
-                        {formatCurrency(store.fixed_cost || store.fixedcost || 0)}
+                      <p className="text-xs text-gray-500 uppercase flex items-center gap-1">
+                        Fixed Cost
+                        {editingStore === store.id && (
+                          <span className="text-blue-600">(editing)</span>
+                        )}
                       </p>
+                      {editingStore === store.id ? (
+                        <div className="mt-1 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="number"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            className="w-20 px-1 py-0.5 text-sm border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            autoFocus
+                          />
+                          <button
+                            onClick={(e) => saveEdit(store, e)}
+                            disabled={updating}
+                            className="p-0.5 text-green-600 hover:bg-green-50 rounded disabled:opacity-50"
+                          >
+                            <Check className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={cancelEditing}
+                            className="p-0.5 text-red-600 hover:bg-red-50 rounded"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="text-sm font-semibold text-gray-700 mt-1">
+                          {formatCurrency(store.fixed_cost || store.fixedcost || 0)}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 uppercase">Total Sales</p>
