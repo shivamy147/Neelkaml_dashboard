@@ -20,7 +20,7 @@ class FormData(BaseModel):
     store_name: Optional[str] = None
     customer_name: str
     mobile_number: str
-    customer_residential_address: Optional[str] = None
+    pincode: Optional[str] = None
     store_remark: Optional[str] = None
     categories: Optional[str] = None
     net_sale_value: Optional[float] = 0

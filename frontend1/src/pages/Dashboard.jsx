@@ -984,9 +984,9 @@ const Dashboard = () => {
                           <td className="px-6 py-4">
                             <div>
                               <div className="text-sm font-medium text-gray-900">{lead.customer_name}</div>
-                              {lead.customer_residential_address && (
+                              {lead.pincode && (
                                 <div className="text-sm text-gray-500 truncate max-w-xs">
-                                  {lead.customer_residential_address}
+                                  {lead.pincode}
                                 </div>
                               )}
                             </div>
@@ -1088,11 +1088,11 @@ const Dashboard = () => {
                         </div>
                       </div>
 
-                      {/* Address */}
-                      {lead.customer_residential_address && (
+                      {/* Pincode */}
+                      {lead.pincode && (
                         <div className="mb-3">
-                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Address</label>
-                          <p className="text-sm text-gray-700 mt-1">{lead.customer_residential_address}</p>
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Pincode</label>
+                          <p className="text-sm text-gray-900 mt-1">{lead.pincode}</p>
                         </div>
                       )}
 

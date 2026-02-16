@@ -17,7 +17,7 @@ const FormDataEntry = () => {
     store_name: '',
     customer_name: '',
     mobile_number: '',
-    customer_residential_address: '',
+    pincode: '',
     store_remark: '',
     categories: '',
     net_sale_value: '',
@@ -62,6 +62,12 @@ const FormDataEntry = () => {
     return numberOnly.slice(0, 10);
   };
 
+  const validatePincode = (value) => {
+    // Allow only numbers and limit to 6 digits
+    const numberOnly = value.replace(/\D/g, '');
+    return numberOnly.slice(0, 6);
+  };
+
   const validateForm = () => {
     const errors = {};
     
@@ -70,6 +76,11 @@ const FormDataEntry = () => {
       errors.mobile_number = 'Mobile number is required';
     } else if (formData.mobile_number.length !== 10) {
       errors.mobile_number = 'Mobile number must be 10 digits';
+    }
+    
+    // Pincode validation (optional but if provided must be 6 digits)
+    if (formData.pincode && formData.pincode.length > 0 && formData.pincode.length !== 6) {
+      errors.pincode = 'Pincode must be 6 digits';
     }
     
     if (!formData.categories) {
@@ -119,6 +130,12 @@ const FormDataEntry = () => {
     
     if (name === 'mobile_number') {
       const validatedValue = validateMobileNumber(value);
+      setFormData(prev => ({
+        ...prev,
+        [name]: validatedValue
+      }));
+    } else if (name === 'pincode') {
+      const validatedValue = validatePincode(value);
       setFormData(prev => ({
         ...prev,
         [name]: validatedValue
@@ -247,7 +264,7 @@ const FormDataEntry = () => {
           store_name: '',
           customer_name: '',
           mobile_number: '',
-          customer_residential_address: '',
+          pincode: '',
           store_remark: '',
           categories: '',
           net_sale_value: '',
@@ -284,7 +301,7 @@ const FormDataEntry = () => {
       store_name: '',
       customer_name: '',
       mobile_number: '',
-      customer_residential_address: '',
+      pincode: '',
       store_remark: '',
       categories: '',
       net_sale_value: '',
@@ -414,16 +431,24 @@ const FormDataEntry = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Residential Address
+                  Pincode
                 </label>
-                <textarea
-                  name="customer_residential_address"
-                  value={formData.customer_residential_address}
+                <input
+                  type="text"
+                  name="pincode"
+                  value={formData.pincode}
                   onChange={handleInputChange}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-                  placeholder="Enter residential address"
+                  maxLength="6"
+                  pattern="[0-9]*"
+                  inputMode="numeric"
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base ${
+                    validationErrors.pincode ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Enter 6-digit pincode"
                 />
+                {validationErrors.pincode && (
+                  <p className="text-red-500 text-sm mt-1">{validationErrors.pincode}</p>
+                )}
               </div>
             </div>
 

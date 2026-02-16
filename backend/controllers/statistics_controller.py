@@ -108,7 +108,9 @@ class StatisticsController:
         # Location to Conversion analysis
         location_conversion = {}
         for item in all_data:
-            address = item.get("customer_residential_address", "Unknown")
+            # Get customer location from pincode
+            pincode = item.get("pincode", "Unknown")
+            address = pincode if pincode and pincode != "Unknown" else "Unknown"
             if address and address.strip() != "":
                 if address not in location_conversion:
                     location_conversion[address] = {"total_leads": 0, "deals_closed": 0}
