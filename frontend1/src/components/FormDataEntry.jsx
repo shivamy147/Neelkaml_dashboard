@@ -92,8 +92,22 @@ const FormDataEntry = () => {
       errors.size_inches = 'Dimensions are required';
     }
     
-    if (!formData.net_sale_value || parseFloat(formData.net_sale_value) <= 0) {
-      errors.net_sale_value = 'Net sale value is required and must be greater than 0';
+    if (!formData.store_remark) {
+      errors.store_remark = 'Store remark is required';
+    }
+    
+    // Conditional validation based on store_remark
+    if (formData.store_remark === 'Deal closed') {
+      if (!formData.net_sale_value || parseFloat(formData.net_sale_value) <= 0) {
+        errors.net_sale_value = 'Net sale value is required when deal is closed';
+      }
+      if (!formData.executive_name) {
+        errors.executive_name = 'Executive name is required when deal is closed';
+      }
+    } else if (formData.store_remark === 'Not interested') {
+      if (!formData.reason_if_not_interested) {
+        errors.reason_if_not_interested = 'Reason is required when not interested';
+      }
     }
     
     setValidationErrors(errors);
@@ -117,6 +131,40 @@ const FormDataEntry = () => {
         ...prev,
         [name]: value,
         day: day
+      }));
+    } else if (name === 'store_remark') {
+      // Clear sales information or reason fields when store remark changes
+      let updateData = { [name]: value };
+      
+      if (value === 'Deal closed') {
+        // Clear reason field when Deal closed is selected
+        updateData.reason_if_not_interested = '';
+      } else if (value === 'Not interested') {
+        // Clear sales fields when Not interested is selected
+        updateData.net_sale_value = '';
+        updateData.executive_name = '';
+        updateData.source_of_walkings = '';
+        updateData.expected_booking_date = '';
+        updateData.sales_order_number = '';
+        updateData.delivery_date = '';
+        updateData.individual = 0;
+        updateData.family = 0;
+      } else {
+        // Clear both if no selection
+        updateData.reason_if_not_interested = '';
+        updateData.net_sale_value = '';
+        updateData.executive_name = '';
+        updateData.source_of_walkings = '';
+        updateData.expected_booking_date = '';
+        updateData.sales_order_number = '';
+        updateData.delivery_date = '';
+        updateData.individual = 0;
+        updateData.family = 0;
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        ...updateData
       }));
     } else {
       setFormData(prev => ({
@@ -505,7 +553,35 @@ const FormDataEntry = () => {
               )}
             </div>
 
-            {/* Sales Information */}
+            {/* Store Remark */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Store Remark</h3>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Store Remark *
+                </label>
+                <select
+                  name="store_remark"
+                  value={formData.store_remark}
+                  onChange={handleInputChange}
+                  required
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    validationErrors.store_remark ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                >
+                  <option value="">Select remark</option>
+                  <option value="Deal closed">Deal closed</option>
+                  <option value="Not interested">Not interested</option>
+                </select>
+                {validationErrors.store_remark && (
+                  <p className="text-red-500 text-sm mt-1">{validationErrors.store_remark}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Conditional Sales Information - Only show if Deal closed */}
+            {formData.store_remark === 'Deal closed' && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Sales Information</h3>
               
@@ -541,8 +617,14 @@ const FormDataEntry = () => {
                     value={formData.executive_name}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.executive_name ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter executive name"
                   />
+                  {validationErrors.executive_name && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.executive_name}</p>
+                  )}
                 </div>
               </div>
 
@@ -629,40 +711,34 @@ const FormDataEntry = () => {
                 </div>
               </div>
             </div>
+            )}
 
-            {/* Additional Information */}
+            {/* Conditional Reason - Only show if Not interested */}
+            {formData.store_remark === 'Not interested' && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">Additional Information</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Reason</h3>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Store Remark
-                </label>
-                <select
-                  name="store_remark"
-                  value={formData.store_remark}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select remark</option>
-                  <option value="Deal closed">Deal closed</option>
-                  <option value="Not interested">Not interested</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Reason if Not Interested
+                  Reason for Not Being Interested *
                 </label>
                 <textarea
                   name="reason_if_not_interested"
                   value={formData.reason_if_not_interested}
                   onChange={handleInputChange}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                  rows={3}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    validationErrors.reason_if_not_interested ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Please provide the reason for not being interested"
                 />
+                {validationErrors.reason_if_not_interested && (
+                  <p className="text-red-500 text-sm mt-1">{validationErrors.reason_if_not_interested}</p>
+                )}
               </div>
             </div>
+            )}
 
             {/* Form Actions */}
             <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200">
