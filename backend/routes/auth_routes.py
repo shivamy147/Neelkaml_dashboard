@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Request
 from datetime import timedelta
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from models.auth import UserCreate, UserLogin, AuthResponse, Token, UserResponse
+from models.auth import UserCreate, UserLogin, AuthResponse, Token, UserResponse, get_password_hash, verify_password
 from controllers.auth_controller import AuthController, ACCESS_TOKEN_EXPIRE_MINUTES
+import os
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -43,16 +44,21 @@ async def signup(user_data: UserCreate):
 async def signin(user_credentials: UserLogin):
     """Sign in user and return access token"""
     try:
+        print(f"Login attempt for email: {user_credentials.email}")
+        
         user = await controller.authenticate_user(
             user_credentials.email, 
             user_credentials.password
         )
         
         if not user:
+            print(f"Authentication failed for: {user_credentials.email}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect email or password"
+                detail="Invalid email or password. Please check your credentials."
             )
+        
+        print(f"Login successful for: {user_credentials.email}")
         
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = controller.create_access_token(
@@ -100,3 +106,31 @@ async def logout():
         success=True,
         message="Logged out successfully"
     )
+
+# Debug endpoint for deployment testing
+@router.get("/test-auth")
+async def test_auth():
+    """Test authentication functions - remove in production"""
+    try:
+        # Only enable in development/debug mode
+        if os.getenv("DEBUG_MODE") != "true":
+            raise HTTPException(status_code=404, detail="Not found")
+        
+        test_password = "testpass123"
+        hashed = get_password_hash(test_password)
+        verification = verify_password(test_password, hashed)
+        
+        return {
+            "bcrypt_test": {
+                "password": test_password,
+                "hash_length": len(hashed),
+                "verification_result": verification,
+                "hash_prefix": hashed[:20] + "..."
+            },
+            "environment": {
+                "python_version": os.sys.version,
+                "debug_mode": os.getenv("DEBUG_MODE", "false")
+            }
+        }
+    except Exception as e:
+        return {"error": str(e)}

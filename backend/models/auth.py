@@ -1,11 +1,11 @@
-from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from pydantic import BaseModel, Field, ConfigDict, EmailStr, field_validator
 from typing import List, Optional, Union
 from datetime import datetime
 import uuid
-from passlib.context import CryptContext
+import hashlib
+import bcrypt
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Direct bcrypt usage to avoid passlib version issues
 
 class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -22,6 +22,15 @@ class UserCreate(BaseModel):
     email: str
     full_name: str
     password: str
+    
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v):
+        if len(v) < 6:
+            raise ValueError('Password must be at least 6 characters long')
+        if len(v) > 100:  # Reasonable upper limit
+            raise ValueError('Password is too long')
+        return v
 
 class UserLogin(BaseModel):
     email: str
@@ -45,8 +54,39 @@ class AuthResponse(BaseModel):
     user: Optional[UserResponse] = None
     token: Optional[Token] = None
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against its hash using direct bcrypt"""
+    try:
+        # Handle encoding and bcrypt 72-byte limit
+        password_bytes = plain_password.encode('utf-8')
+        
+        # If password is too long for bcrypt, pre-hash it (same as during hashing)
+        if len(password_bytes) > 72:
+            password_bytes = hashlib.sha256(password_bytes).digest()
+            
+        hashed_bytes = hashed_password.encode('utf-8')
+        
+        return bcrypt.checkpw(password_bytes, hashed_bytes)
+    except Exception as e:
+        print(f"Password verification error: {e}")
+        return False
 
-def get_password_hash(password):
-    return pwd_context.hash(password)
+def get_password_hash(password: str) -> str:
+    """Hash a password using direct bcrypt"""
+    try:
+        # Handle encoding and bcrypt 72-byte limit
+        password_bytes = password.encode('utf-8')
+        
+        # If password is too long for bcrypt, pre-hash it
+        if len(password_bytes) > 72:
+            password_bytes = hashlib.sha256(password_bytes).digest()
+            print(f"Long password detected, using SHA256 pre-hash")
+            
+        # Generate salt and hash
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password_bytes, salt)
+        
+        return hashed.decode('utf-8')
+    except Exception as e:
+        print(f"Password hashing error: {e}")
+        raise ValueError(f"Password hashing failed: {e}")

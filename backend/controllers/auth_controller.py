@@ -29,8 +29,21 @@ class AuthController:
                     detail="Email already registered"
                 )
             
+            # Validate password length for bcrypt
+            if len(user_data.password.encode('utf-8')) > 200:  # Reasonable limit
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Password is too long"
+                )
+            
             # Create new user
-            hashed_password = get_password_hash(user_data.password)
+            try:
+                hashed_password = get_password_hash(user_data.password)
+            except ValueError as ve:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=str(ve)
+                )
             user_dict = {
                 "email": user_data.email,
                 "full_name": user_data.full_name,
@@ -64,14 +77,20 @@ class AuthController:
         try:
             user_doc = await self.collection.find_one({"email": email})
             if not user_doc:
+                print(f"User not found: {email}")
                 return None
             
             user_doc["id"] = str(user_doc.pop("_id"))
             user = User(**user_doc)
             
+            # Debug logging for deployment
+            print(f"Attempting authentication for user: {email}")
+            
             if not verify_password(password, user.hashed_password):
+                print(f"Password verification failed for user: {email}")
                 return None
             
+            print(f"Authentication successful for user: {email}")
             return user
         except Exception as e:
             print(f"Authentication error: {e}")
