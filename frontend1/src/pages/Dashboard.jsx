@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { 
   Users, TrendingUp, Target, IndianRupee, ShoppingCart,
   ArrowLeft, Activity, TrendingDown, Package, Home as HomeIcon,
-  BarChart3, UserCheck, MapPin, Table, Clock, Calendar, Truck, User, LogOut
+  BarChart3, UserCheck, MapPin, Table, Clock, Calendar, Truck, User, LogOut,
+  Search, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
@@ -27,6 +28,17 @@ const Dashboard = () => {
   const [leadsData, setLeadsData] = useState([]);
   const [loadingLeads, setLoadingLeads] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  
+  // Executive pagination and search states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredExecutives, setFilteredExecutives] = useState([]);
+  const itemsPerPage = 7;
+  
+  // Team Performance pagination and search states
+  const [teamCurrentPage, setTeamCurrentPage] = useState(1);
+  const [teamSearchTerm, setTeamSearchTerm] = useState('');
+  const [filteredTeamExecutives, setFilteredTeamExecutives] = useState([]);
 
   useEffect(() => {
     fetchDashboardStats();
@@ -139,6 +151,108 @@ const Dashboard = () => {
   const handleLogout = () => {
     logout();
     setShowUserMenu(false);
+  };
+
+  // Debounced search function
+  const debounceSearch = useCallback(
+    (() => {
+      let timeoutId;
+      return (searchValue, executiveData) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          if (!executiveData) return;
+          
+          const filtered = executiveData.filter(exec => 
+            exec.name.toLowerCase().includes(searchValue.toLowerCase())
+          );
+          setFilteredExecutives(filtered);
+          setCurrentPage(1); // Reset to first page when searching
+        }, 300);
+      };
+    })()
+  , []);
+
+  // Debounced search function for team performance
+  const debounceTeamSearch = useCallback(
+    (() => {
+      let timeoutId;
+      return (searchValue, executiveData) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          if (!executiveData) return;
+          
+          const filtered = executiveData.filter(exec => 
+            exec.name.toLowerCase().includes(searchValue.toLowerCase())
+          );
+          setFilteredTeamExecutives(filtered);
+          setTeamCurrentPage(1); // Reset to first page when searching
+        }, 300);
+      };
+    })()
+  , []);
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    if (stats?.executive_performance) {
+      debounceSearch(value, stats.executive_performance);
+    }
+  };
+
+  // Handle team search input change
+  const handleTeamSearchChange = (e) => {
+    const value = e.target.value;
+    setTeamSearchTerm(value);
+    
+    if (stats?.executive_performance) {
+      debounceTeamSearch(value, stats.executive_performance);
+    }
+  };
+
+  // Update filtered executives when stats change
+  useEffect(() => {
+    if (stats?.executive_performance) {
+      const filtered = stats.executive_performance.filter(exec => 
+        exec.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredExecutives(filtered);
+
+      const teamFiltered = stats.executive_performance.filter(exec => 
+        exec.name.toLowerCase().includes(teamSearchTerm.toLowerCase())
+      );
+      setFilteredTeamExecutives(teamFiltered);
+    }
+  }, [stats, searchTerm, teamSearchTerm]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredExecutives.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentExecutives = filteredExecutives.slice(startIndex, endIndex);
+
+  const goToNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  };
+
+  const goToPrevPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+
+  // Team performance pagination helpers
+  const totalTeamPages = Math.ceil(filteredTeamExecutives.length / itemsPerPage);
+  const paginatedTeamExecutives = filteredTeamExecutives.slice(
+    (teamCurrentPage - 1) * itemsPerPage,
+    teamCurrentPage * itemsPerPage
+  );
+
+  const goToNextTeamPage = () => {
+    setTeamCurrentPage(prev => Math.min(prev + 1, totalTeamPages));
+  };
+
+  const goToPrevTeamPage = () => {
+    setTeamCurrentPage(prev => Math.max(prev - 1, 1));
   };
 
   if (loading) {
@@ -546,20 +660,69 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Executives</h3>
-                <div className="space-y-3">
-                  {executive_performance.slice(0, 5).map((exec, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-gray-900">{exec.name}</p>
-                        <p className="text-sm text-gray-600">{exec.total_leads} leads • {exec.bookings} bookings</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-green-600">{exec.conversion_rate}%</p>
-                        <p className="text-sm text-gray-600">{formatCurrency(exec.revenue)}</p>
-                      </div>
-                    </div>
-                  ))}
+                
+                {/* Search Bar */}
+                <div className="relative mb-4">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Search executives by name..."
+                  />
                 </div>
+
+                <div className="space-y-3">
+                  {currentExecutives.length > 0 ? (
+                    currentExecutives.map((exec, idx) => (
+                      <div key={startIndex + idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <p className="font-medium text-gray-900">{exec.name}</p>
+                          <p className="text-sm text-gray-600">{exec.total_leads} leads • {exec.bookings} bookings</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-green-600">{exec.conversion_rate}%</p>
+                          <p className="text-sm text-gray-600">{formatCurrency(exec.revenue)}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-gray-500">
+                      {searchTerm ? 'No executives found matching your search.' : 'No executive data available.'}
+                    </div>
+                  )}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                    <div className="text-sm text-gray-600">
+                      Showing {startIndex + 1} to {Math.min(endIndex, filteredExecutives.length)} of {filteredExecutives.length} executives
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={goToPrevPage}
+                        disabled={currentPage === 1}
+                        className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <span className="text-sm text-gray-600">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <button
+                        onClick={goToNextPage}
+                        disabled={currentPage === totalPages}
+                        className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="bg-white rounded-lg shadow-md p-6">
@@ -656,13 +819,26 @@ const Dashboard = () => {
                 </ResponsiveContainer>
               </div>
 
-              {/* Executive Performance (Leads Touched) */}
+              {/* Team Performance (Leads Touched) */}
               <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <UserCheck className="w-5 h-5 mr-2" />
-                  Executive Performance (Leads Touched)
-                </h3>
-                <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-4 sm:mb-0">
+                    <UserCheck className="w-5 h-5 mr-2" />
+                    Team Performance (Leads Touched)
+                  </h3>
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search by name..."
+                      value={teamSearchTerm}
+                      onChange={handleTeamSearchChange}
+                      className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                
+                <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
@@ -674,7 +850,7 @@ const Dashboard = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {executive_performance.map((exec, idx) => (
+                      {paginatedTeamExecutives.map((exec, idx) => (
                         <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{exec.name}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exec.total_leads}</td>
@@ -692,6 +868,46 @@ const Dashboard = () => {
                     </tbody>
                   </table>
                 </div>
+                
+                {/* Team Performance Pagination */}
+                {filteredTeamExecutives.length > itemsPerPage && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                    <div className="text-sm text-gray-600">
+                      Showing {((teamCurrentPage - 1) * itemsPerPage) + 1} to {Math.min(teamCurrentPage * itemsPerPage, filteredTeamExecutives.length)} of {filteredTeamExecutives.length} executives
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={goToPrevTeamPage}
+                        disabled={teamCurrentPage === 1}
+                        className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+                          teamCurrentPage === 1
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        <ChevronLeft className="w-4 h-4 mr-1" />
+                        Previous
+                      </button>
+                      
+                      <span className="px-3 py-2 text-sm text-gray-600">
+                        Page {teamCurrentPage} of {totalTeamPages}
+                      </span>
+                      
+                      <button
+                        onClick={goToNextTeamPage}
+                        disabled={teamCurrentPage === totalTeamPages}
+                        className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+                          teamCurrentPage === totalTeamPages
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
