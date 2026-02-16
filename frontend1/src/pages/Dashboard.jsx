@@ -530,7 +530,7 @@ const Dashboard = () => {
                 <ResponsiveContainer width="100%" height={350}>
                   <BarChart data={category_performance.slice(0, 8)}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="category" angle={-45} textAnchor="end" height={100} />
+                    <XAxis dataKey="category" angle={0} textAnchor="middle" height={60} />
                     <YAxis />
                     <Tooltip />
                     <Legend />
