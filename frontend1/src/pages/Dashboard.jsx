@@ -5,17 +5,19 @@ import { toast } from 'react-toastify';
 import { 
   Users, TrendingUp, Target, IndianRupee, ShoppingCart,
   ArrowLeft, Activity, TrendingDown, Package, Home as HomeIcon,
-  BarChart3, UserCheck, MapPin, Table, Clock, Calendar, Truck
+  BarChart3, UserCheck, MapPin, Table, Clock, Calendar, Truck, User, LogOut
 } from 'lucide-react';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { StatCardSkeleton, ChartSkeleton, TableSkeleton } from '../components/Skeleton';
+import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
   const { storeId } = useParams();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [stats, setStats] = useState(null);
   const [storeInfo, setStoreInfo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,6 +26,7 @@ const Dashboard = () => {
   const [toDate, setToDate] = useState('');
   const [leadsData, setLeadsData] = useState([]);
   const [loadingLeads, setLoadingLeads] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
     fetchDashboardStats();
@@ -131,6 +134,11 @@ const Dashboard = () => {
       currency: 'INR',
       maximumFractionDigits: 0
     }).format(amount);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setShowUserMenu(false);
   };
 
   if (loading) {
@@ -265,14 +273,43 @@ const Dashboard = () => {
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center px-3 sm:px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg text-sm sm:text-base w-full sm:w-auto justify-center sm:justify-start"
-            >
-              <HomeIcon className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Back to Stores</span>
-              <span className="sm:hidden">Back</span>
-            </button>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <button
+                onClick={() => navigate('/')}
+                className="flex items-center px-3 sm:px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg text-sm sm:text-base"
+              >
+                <HomeIcon className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Back to Stores</span>
+                <span className="sm:hidden">Back</span>
+              </button>
+              
+              {/* User Menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
+                >
+                  <User className="w-4 h-4" />
+                  <span className="hidden lg:inline">{user?.full_name || 'User'}</span>
+                </button>
+
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <div className="px-4 py-2 text-sm text-gray-900 border-b">
+                      <p className="font-medium">{user?.full_name}</p>
+                      <p className="text-gray-600">{user?.email}</p>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           
           {/* Date Filter */}
@@ -1164,6 +1201,14 @@ const Dashboard = () => {
           </div>
         )}
       </main>
+      
+      {/* Backdrop for user menu */}
+      {showUserMenu && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setShowUserMenu(false)}
+        />
+      )}
     </div>
   );
 };

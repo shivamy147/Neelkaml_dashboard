@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
   TrendingUp, TrendingDown, Target, Users, 
-  IndianRupee, ArrowRight, MapPin, Plus, Store, Edit3, Check, X
+  IndianRupee, ArrowRight, MapPin, Plus, Store, Edit3, Check, X, User, LogOut
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { StatCardSkeleton, StoreCardSkeleton } from '../components/Skeleton';
+import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [storesData, setStoresData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -18,6 +20,7 @@ const Home = () => {
   const [editingStore, setEditingStore] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [updating, setUpdating] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     fixedcost: 0,
@@ -126,6 +129,11 @@ const Home = () => {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    setShowUserMenu(false);
+  };
+
   const formatCurrency = (value) => {
     if (value >= 10000000) {
       return `₹${(value / 10000000).toFixed(2)} Cr`;
@@ -189,6 +197,33 @@ const Home = () => {
                 <span className="sm:hidden">Analytics</span>
                 <ArrowRight className="w-4 h-4 ml-2" />
               </button>
+              
+              {/* User Menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg w-full sm:w-auto justify-center sm:justify-start"
+                >
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:inline">{user?.full_name || 'User'}</span>
+                </button>
+
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <div className="px-4 py-2 text-sm text-gray-900 border-b">
+                      <p className="font-medium">{user?.full_name}</p>
+                      <p className="text-gray-600">{user?.email}</p>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           
