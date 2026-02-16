@@ -107,13 +107,14 @@ const FormDataEntry = () => {
       errors.store_remark = 'Store remark is required';
     }
     
+    if (!formData.executive_name) {
+      errors.executive_name = 'Executive name is required';
+    }
+    
     // Conditional validation based on store_remark
     if (formData.store_remark === 'Deal closed') {
       if (!formData.net_sale_value || parseFloat(formData.net_sale_value) <= 0) {
         errors.net_sale_value = 'Net sale value is required when deal is closed';
-      }
-      if (!formData.executive_name) {
-        errors.executive_name = 'Executive name is required when deal is closed';
       }
     } else if (formData.store_remark === 'Not interested') {
       if (!formData.reason_if_not_interested) {
@@ -159,8 +160,6 @@ const FormDataEntry = () => {
       } else if (value === 'Not interested') {
         // Clear sales fields when Not interested is selected
         updateData.net_sale_value = '';
-        updateData.executive_name = '';
-        updateData.source_of_walkings = '';
         updateData.expected_booking_date = '';
         updateData.sales_order_number = '';
         updateData.delivery_date = '';
@@ -170,8 +169,6 @@ const FormDataEntry = () => {
         // Clear both if no selection
         updateData.reason_if_not_interested = '';
         updateData.net_sale_value = '';
-        updateData.executive_name = '';
-        updateData.source_of_walkings = '';
         updateData.expected_booking_date = '';
         updateData.sales_order_number = '';
         updateData.delivery_date = '';
@@ -578,6 +575,49 @@ const FormDataEntry = () => {
               )}
             </div>
 
+            {/* Executive Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Executive Information</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Executive Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="executive_name"
+                    value={formData.executive_name}
+                    onChange={handleInputChange}
+                    required
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.executive_name ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter executive name"
+                  />
+                  {validationErrors.executive_name && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.executive_name}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Source of Walking
+                  </label>
+                  <select
+                    name="source_of_walkings"
+                    value={formData.source_of_walkings}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select source</option>
+                    {SOURCES.map(source => (
+                      <option key={source} value={source}>{source}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
             {/* Store Remark */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Store Remark</h3>
@@ -632,42 +672,6 @@ const FormDataEntry = () => {
                     <p className="text-red-500 text-sm mt-1">{validationErrors.net_sale_value}</p>
                   )}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Executive Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="executive_name"
-                    value={formData.executive_name}
-                    onChange={handleInputChange}
-                    required
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      validationErrors.executive_name ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Enter executive name"
-                  />
-                  {validationErrors.executive_name && (
-                    <p className="text-red-500 text-sm mt-1">{validationErrors.executive_name}</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Source of Walking
-                </label>
-                <select
-                  name="source_of_walkings"
-                  value={formData.source_of_walkings}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select source</option>
-                  {SOURCES.map(source => (
-                    <option key={source} value={source}>{source}</option>
-                  ))}
-                </select>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
