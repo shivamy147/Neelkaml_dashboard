@@ -9,6 +9,7 @@ const FormDataEntry = () => {
   const [storesLoading, setStoresLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [stores, setStores] = useState([]);
+  const [validationErrors, setValidationErrors] = useState({});
   
   const [formData, setFormData] = useState({
     date_of_visit: new Date().toISOString().split('T')[0],
@@ -19,7 +20,7 @@ const FormDataEntry = () => {
     customer_residential_address: '',
     store_remark: '',
     categories: '',
-    net_sale_value: 0,
+    net_sale_value: '',
     executive_name: '',
     source_of_walkings: '',
     expected_booking_date: '',
@@ -55,12 +56,82 @@ const FormDataEntry = () => {
     }
   };
 
+  const validateMobileNumber = (value) => {
+    // Allow only numbers and limit to 10 digits
+    const numberOnly = value.replace(/\D/g, '');
+    return numberOnly.slice(0, 10);
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    
+    // Required field validation
+    if (!formData.mobile_number) {
+      errors.mobile_number = 'Mobile number is required';
+    } else if (formData.mobile_number.length !== 10) {
+      errors.mobile_number = 'Mobile number must be 10 digits';
+    }
+    
+    if (!formData.categories) {
+      errors.categories = 'Category is required';
+    }
+    
+    if (!formData.product.product_name) {
+      errors.product_name = 'Product name is required';
+    }
+    
+    if (!formData.product.size) {
+      errors.size = 'Size is required';
+    }
+    
+    if (!formData.product.height) {
+      errors.height = 'Height is required';
+    }
+    
+    if (!formData.product.size_inches) {
+      errors.size_inches = 'Dimensions are required';
+    }
+    
+    if (!formData.net_sale_value || parseFloat(formData.net_sale_value) <= 0) {
+      errors.net_sale_value = 'Net sale value is required and must be greater than 0';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    if (name === 'mobile_number') {
+      const validatedValue = validateMobileNumber(value);
+      setFormData(prev => ({
+        ...prev,
+        [name]: validatedValue
+      }));
+    } else if (name === 'date_of_visit') {
+      // Update day automatically when date changes
+      const date = new Date(value);
+      const day = date.toLocaleDateString('en-US', { weekday: 'long' });
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        day: day
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+    
+    // Clear validation error when user starts typing
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const handleProductSelect = (e) => {
@@ -90,10 +161,24 @@ const FormDataEntry = () => {
         [name]: value
       }
     }));
+    
+    // Clear validation error when user starts typing
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast.error('Please fix the validation errors');
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -117,7 +202,7 @@ const FormDataEntry = () => {
           customer_residential_address: '',
           store_remark: '',
           categories: '',
-          net_sale_value: 0,
+          net_sale_value: '',
           executive_name: '',
           source_of_walkings: '',
           expected_booking_date: '',
@@ -134,6 +219,7 @@ const FormDataEntry = () => {
           reason_if_not_interested: ''
         });
         setSelectedProduct(null);
+        setValidationErrors({});
       }
     } catch (error) {
       const errorMsg = error.response?.data?.detail || 'Network error. Please try again.';
@@ -153,7 +239,7 @@ const FormDataEntry = () => {
       customer_residential_address: '',
       store_remark: '',
       categories: '',
-      net_sale_value: 0,
+      net_sale_value: '',
       executive_name: '',
       source_of_walkings: '',
       expected_booking_date: '',
@@ -170,6 +256,7 @@ const FormDataEntry = () => {
       reason_if_not_interested: ''
     });
     setSelectedProduct(null);
+    setValidationErrors({});
   };
 
   return (
@@ -202,14 +289,15 @@ const FormDataEntry = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Day
+                  Day (Auto-populated) *
                 </label>
                 <input
                   type="text"
                   name="day"
                   value={formData.day}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  readOnly
+                  disabled
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed"
                 />
               </div>
             </div>
@@ -262,9 +350,17 @@ const FormDataEntry = () => {
                     value={formData.mobile_number}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-                    placeholder="Enter mobile number"
+                    maxLength="10"
+                    pattern="[0-9]*"
+                    inputMode="numeric"
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base ${
+                      validationErrors.mobile_number ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter 10-digit mobile number"
                   />
+                  {validationErrors.mobile_number && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.mobile_number}</p>
+                  )}
                 </div>
               </div>
 
@@ -289,29 +385,38 @@ const FormDataEntry = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
+                  Category *
                 </label>
                 <select
                   name="categories"
                   value={formData.categories}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                  required
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base ${
+                    validationErrors.categories ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 >
                   <option value="">Select category</option>
                   {CATEGORIES.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
+                {validationErrors.categories && (
+                  <p className="text-red-500 text-sm mt-1">{validationErrors.categories}</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Name
+                  Product Name *
                 </label>
                 <select
                   value={formData.product.product_name}
                   onChange={handleProductSelect}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    validationErrors.product_name ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 >
                   <option value="">Select product</option>
                   {PRODUCTS_DATA.map(product => (
@@ -320,59 +425,80 @@ const FormDataEntry = () => {
                     </option>
                   ))}
                 </select>
+                {validationErrors.product_name && (
+                  <p className="text-red-500 text-sm mt-1">{validationErrors.product_name}</p>
+                )}
               </div>
 
               {selectedProduct && (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Size
+                      Size *
                     </label>
                     <select
                       name="size"
                       value={formData.product.size}
                       onChange={handleProductFieldChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        validationErrors.size ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     >
                       <option value="">Select size</option>
                       {selectedProduct.sizes.map(size => (
                         <option key={size} value={size}>{size}</option>
                       ))}
                     </select>
+                    {validationErrors.size && (
+                      <p className="text-red-500 text-sm mt-1">{validationErrors.size}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Height (inches)
+                        Height (inches) *
                       </label>
                       <select
                         name="height"
                         value={formData.product.height}
                         onChange={handleProductFieldChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          validationErrors.height ? 'border-red-500' : 'border-gray-300'
+                        }`}
                       >
                         <option value="">Select height</option>
                         {selectedProduct.heights.map(height => (
                           <option key={height} value={height}>{height}</option>
                         ))}
                       </select>
+                      {validationErrors.height && (
+                        <p className="text-red-500 text-sm mt-1">{validationErrors.height}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Dimensions (W x D)
+                        Dimensions (W x D) *
                       </label>
                       <select
                         name="size_inches"
                         value={formData.product.size_inches}
                         onChange={handleProductFieldChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          validationErrors.size_inches ? 'border-red-500' : 'border-gray-300'
+                        }`}
                       >
                         <option value="">Select dimensions</option>
                         {selectedProduct.sizeInches.map(sizeInch => (
                           <option key={sizeInch} value={sizeInch}>{sizeInch}</option>
                         ))}
                       </select>
+                      {validationErrors.size_inches && (
+                        <p className="text-red-500 text-sm mt-1">{validationErrors.size_inches}</p>
+                      )}
                     </div>
                   </div>
                 </>
@@ -386,15 +512,24 @@ const FormDataEntry = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Net Sale Value
+                    Net Sale Value *
                   </label>
                   <input
                     type="number"
                     name="net_sale_value"
                     value={formData.net_sale_value}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                    min="0.01"
+                    step="0.01"
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.net_sale_value ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter sale value"
                   />
+                  {validationErrors.net_sale_value && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.net_sale_value}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
