@@ -22,6 +22,8 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [leadsData, setLeadsData] = useState([]);
+  const [loadingLeads, setLoadingLeads] = useState(false);
 
   useEffect(() => {
     fetchDashboardStats();
@@ -29,6 +31,12 @@ const Dashboard = () => {
       fetchStoreInfo();
     }
   }, [storeId]);
+
+  useEffect(() => {
+    if (activeTab === 'leads') {
+      fetchLeadsData();
+    }
+  }, [activeTab, storeId, storeInfo, fromDate, toDate]);
 
   const fetchStoreInfo = async () => {
     try {
@@ -70,6 +78,41 @@ const Dashboard = () => {
       toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchLeadsData = async () => {
+    setLoadingLeads(true);
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/formdata`);
+      if (response.data.success) {
+        let leads = response.data.data || [];
+        
+        // Filter by store if storeId is provided
+        if (storeId && storeInfo) {
+          leads = leads.filter(lead => lead.store_name === storeInfo.name);
+        }
+        
+        // Filter by date range if provided
+        if (fromDate || toDate) {
+          leads = leads.filter(lead => {
+            const leadDate = lead.date_of_visit;
+            if (fromDate && leadDate < fromDate) return false;
+            if (toDate && leadDate > toDate) return false;
+            return true;
+          });
+        }
+        
+        // Sort by date (newest first)
+        leads.sort((a, b) => new Date(b.date_of_visit) - new Date(a.date_of_visit));
+        
+        setLeadsData(leads);
+      }
+    } catch (error) {
+      console.error('Error fetching leads:', error);
+      toast.error('Failed to load leads data');
+    } finally {
+      setLoadingLeads(false);
     }
   };
 
@@ -856,16 +899,268 @@ const Dashboard = () => {
 
         {/* LEAD TABLE TAB */}
         {activeTab === 'leads' && (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <Table className="w-5 h-5 mr-2" />
-              Lead Details (Coming Soon)
-            </h3>
-            <div className="text-center py-12">
-              <Table className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Lead table with detailed customer information will be added here</p>
-              <p className="text-sm text-gray-400 mt-2">This section will display filterable and sortable lead data</p>
+          <div className="bg-white rounded-lg shadow-md">
+            <div className="p-4 sm:p-6 border-b border-gray-200">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center">
+                <Table className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                Lead Details ({leadsData.length} leads)
+              </h3>
             </div>
+            
+            {loadingLeads ? (
+              <div className="p-4 sm:p-6">
+                <TableSkeleton rows={10} columns={6} />
+              </div>
+            ) : leadsData.length === 0 ? (
+              <div className="text-center py-12">
+                <Table className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 px-4">No leads found for the selected criteria</p>
+                <p className="text-sm text-gray-400 mt-2 px-4">Try adjusting your date filters or check other stores</p>
+              </div>
+            ) : (
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Executive</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sale Value</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {leadsData.map((lead, index) => (
+                        <tr key={lead.id || index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {new Date(lead.date_of_visit).toLocaleDateString('en-IN', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric'
+                            })}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{lead.customer_name}</div>
+                              {lead.customer_residential_address && (
+                                <div className="text-sm text-gray-500 truncate max-w-xs">
+                                  {lead.customer_residential_address}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {lead.mobile_number}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div>
+                              {lead.product?.product_name && (
+                                <div className="text-sm font-medium text-gray-900">
+                                  {lead.product.product_name}
+                                </div>
+                              )}
+                              {(lead.product?.size || lead.product?.height) && (
+                                <div className="text-sm text-gray-500">
+                                  {lead.product.size} - {lead.product.height}" - {lead.product.size_inches}
+                                </div>
+                              )}
+                              {lead.categories && (
+                                <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded mt-1 inline-block">
+                                  {lead.categories}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {lead.executive_name}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {formatCurrency(lead.net_sale_value || 0)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {lead.store_remark === 'Deal closed' ? (
+                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Deal Closed
+                              </span>
+                            ) : lead.store_remark === 'Not interested' ? (
+                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                Not Interested
+                              </span>
+                            ) : (
+                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                In Progress
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {lead.source_of_walkings || 'Unknown'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="lg:hidden divide-y divide-gray-200">
+                  {leadsData.map((lead, index) => (
+                    <div key={lead.id || index} className="p-4 sm:p-6 hover:bg-gray-50">
+                      {/* Header Row */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-semibold text-gray-900 truncate">{lead.customer_name}</h4>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {new Date(lead.date_of_visit).toLocaleDateString('en-IN', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                        <div className="flex-shrink-0 ml-4">
+                          {lead.store_remark === 'Deal closed' ? (
+                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                              Closed
+                            </span>
+                          ) : lead.store_remark === 'Not interested' ? (
+                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                              Lost
+                            </span>
+                          ) : (
+                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                              Active
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Contact Info */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                        <div>
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Mobile</label>
+                          <p className="text-sm text-gray-900 mt-1">{lead.mobile_number}</p>
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Executive</label>
+                          <p className="text-sm text-gray-900 mt-1">{lead.executive_name}</p>
+                        </div>
+                      </div>
+
+                      {/* Address */}
+                      {lead.customer_residential_address && (
+                        <div className="mb-3">
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Address</label>
+                          <p className="text-sm text-gray-700 mt-1">{lead.customer_residential_address}</p>
+                        </div>
+                      )}
+
+                      {/* Product Details */}
+                      {lead.product?.product_name && (
+                        <div className="mb-3">
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Product</label>
+                          <div className="mt-1">
+                            <p className="text-sm font-medium text-gray-900">{lead.product.product_name}</p>
+                            {(lead.product?.size || lead.product?.height) && (
+                              <p className="text-sm text-gray-600">
+                                {lead.product.size} - {lead.product.height}" - {lead.product.size_inches}
+                              </p>
+                            )}
+                            {lead.categories && (
+                              <span className="inline-block text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded mt-1">
+                                {lead.categories}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Bottom Row - Value and Source */}
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                        <div>
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Sale Value</label>
+                          <p className="text-sm font-semibold text-gray-900 mt-1">{formatCurrency(lead.net_sale_value || 0)}</p>
+                        </div>
+                        <div className="text-right">
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Source</label>
+                          <p className="text-sm text-gray-600 mt-1">{lead.source_of_walkings || 'Unknown'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Tablet Compact Table View */}
+                <div className="hidden md:block lg:hidden overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {leadsData.map((lead, index) => (
+                        <tr key={lead.id || index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                          <td className="px-4 py-4 text-sm text-gray-900">
+                            {new Date(lead.date_of_visit).toLocaleDateString('en-IN', {
+                              day: '2-digit',
+                              month: 'short'
+                            })}
+                          </td>
+                          <td className="px-4 py-4">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{lead.customer_name}</div>
+                              <div className="text-sm text-gray-500">{lead.mobile_number}</div>
+                              <div className="text-xs text-gray-500">{lead.executive_name}</div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4">
+                            <div>
+                              {lead.product?.product_name && (
+                                <div className="text-sm font-medium text-gray-900 truncate max-w-[150px]">
+                                  {lead.product.product_name}
+                                </div>
+                              )}
+                              {lead.categories && (
+                                <div className="text-xs text-blue-600 bg-blue-50 px-1 py-0.5 rounded mt-1 inline-block">
+                                  {lead.categories}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-sm font-medium text-gray-900">
+                            {formatCurrency(lead.net_sale_value || 0)}
+                          </td>
+                          <td className="px-4 py-4">
+                            {lead.store_remark === 'Deal closed' ? (
+                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Closed
+                              </span>
+                            ) : lead.store_remark === 'Not interested' ? (
+                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                Lost
+                              </span>
+                            ) : (
+                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                Active
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
           </div>
         )}
       </main>
