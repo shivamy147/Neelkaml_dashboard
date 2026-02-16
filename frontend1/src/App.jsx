@@ -32,11 +32,7 @@ const App = () => {
                 <Dashboard />
               </ProtectedRoute>
             } />
-            <Route path="/form" element={
-              <ProtectedRoute>
-                <FormDataEntry />
-              </ProtectedRoute>
-            } />
+            <Route path="/form" element={<FormDataEntry />} />
           </Routes>
           <ToastContainer 
             position="top-right"
