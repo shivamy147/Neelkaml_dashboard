@@ -30,7 +30,10 @@ const FormDataEntry = () => {
       product_name: '',
       size: '',
       height: '',
-      size_inches: ''
+      size_inches: '',
+      custom_height: '',
+      custom_width: '',
+      custom_depth: ''
     },
     individual: 0,
     family: 0,
@@ -94,13 +97,30 @@ const FormDataEntry = () => {
     if (!formData.product.size) {
       errors.size = 'Size is required';
     }
-    
-    if (!formData.product.height) {
-      errors.height = 'Height is required';
-    }
-    
-    if (!formData.product.size_inches) {
-      errors.size_inches = 'Dimensions are required';
+
+    // Validate dimensions based on size selection
+    if (formData.product.size === 'Custom') {
+      // For custom size, require custom dimensions
+      if (!formData.product.custom_height) {
+        errors.custom_height = 'Custom height is required';
+      }
+      
+      if (!formData.product.custom_width) {
+        errors.custom_width = 'Custom width is required';
+      }
+      
+      if (!formData.product.custom_depth) {
+        errors.custom_depth = 'Custom depth is required';
+      }
+    } else if (formData.product.size) {
+      // For standard sizes, require standard height and dimensions
+      if (!formData.product.height) {
+        errors.height = 'Height is required';
+      }
+      
+      if (!formData.product.size_inches) {
+        errors.size_inches = 'Dimensions are required';
+      }
     }
     
     if (!formData.store_remark) {
@@ -208,7 +228,10 @@ const FormDataEntry = () => {
           product_name: productName,
           size: '',
           height: '',
-          size_inches: ''
+          size_inches: '',
+          custom_height: '',
+          custom_width: '',
+          custom_depth: ''
         }
       }));
     }
@@ -244,8 +267,22 @@ const FormDataEntry = () => {
     setLoading(true);
 
     try {
+      // Prepare the product data for backend
+      let productData = { ...formData.product };
+      
+      // If custom size is selected, format custom dimensions for backend
+      if (formData.product.size === 'Custom') {
+        productData.height = formData.product.custom_height;
+        productData.size_inches = `${formData.product.custom_width}x${formData.product.custom_depth}`;
+        // Remove custom fields as backend doesn't expect them
+        delete productData.custom_height;
+        delete productData.custom_width;
+        delete productData.custom_depth;
+      }
+
       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/formdata`, {
         ...formData,
+        product: productData,
         net_sale_value: parseFloat(formData.net_sale_value) || 0,
         individual: parseInt(formData.individual) || 0,
         family: parseInt(formData.family) || 0,
@@ -274,7 +311,10 @@ const FormDataEntry = () => {
             product_name: '',
             size: '',
             height: '',
-            size_inches: ''
+            size_inches: '',
+            custom_height: '',
+            custom_width: '',
+            custom_depth: ''
           },
           individual: 0,
           family: 0,
@@ -311,7 +351,10 @@ const FormDataEntry = () => {
         product_name: '',
         size: '',
         height: '',
-        size_inches: ''
+        size_inches: '',
+        custom_height: '',
+        custom_width: '',
+        custom_depth: ''
       },
       individual: 0,
       family: 0,
@@ -525,52 +568,127 @@ const FormDataEntry = () => {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Height (inches) *
-                      </label>
-                      <select
-                        name="height"
-                        value={formData.product.height}
-                        onChange={handleProductFieldChange}
-                        required
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          validationErrors.height ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                      >
-                        <option value="">Select height</option>
-                        {selectedProduct.heights.map(height => (
-                          <option key={height} value={height}>{height}</option>
-                        ))}
-                      </select>
-                      {validationErrors.height && (
-                        <p className="text-red-500 text-sm mt-1">{validationErrors.height}</p>
-                      )}
+                  {/* Standard Size Inputs */}
+                  {formData.product.size && formData.product.size !== 'Custom' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Height (inches) *
+                        </label>
+                        <select
+                          name="height"
+                          value={formData.product.height}
+                          onChange={handleProductFieldChange}
+                          required
+                          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                            validationErrors.height ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                        >
+                          <option value="">Select height</option>
+                          {selectedProduct.heights.map(height => (
+                            <option key={height} value={height}>{height}</option>
+                          ))}
+                        </select>
+                        {validationErrors.height && (
+                          <p className="text-red-500 text-sm mt-1">{validationErrors.height}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Dimensions (W x D) *
+                        </label>
+                        <select
+                          name="size_inches"
+                          value={formData.product.size_inches}
+                          onChange={handleProductFieldChange}
+                          required
+                          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                            validationErrors.size_inches ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                        >
+                          <option value="">Select dimensions</option>
+                          {selectedProduct.sizeInches.map(sizeInch => (
+                            <option key={sizeInch} value={sizeInch}>{sizeInch}</option>
+                          ))}
+                        </select>
+                        {validationErrors.size_inches && (
+                          <p className="text-red-500 text-sm mt-1">{validationErrors.size_inches}</p>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Dimensions (W x D) *
-                      </label>
-                      <select
-                        name="size_inches"
-                        value={formData.product.size_inches}
-                        onChange={handleProductFieldChange}
-                        required
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          validationErrors.size_inches ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                      >
-                        <option value="">Select dimensions</option>
-                        {selectedProduct.sizeInches.map(sizeInch => (
-                          <option key={sizeInch} value={sizeInch}>{sizeInch}</option>
-                        ))}
-                      </select>
-                      {validationErrors.size_inches && (
-                        <p className="text-red-500 text-sm mt-1">{validationErrors.size_inches}</p>
-                      )}
+                  )}
+
+                  {/* Custom Size Inputs */}
+                  {formData.product.size === 'Custom' && (
+                    <div className="bg-gray-50 p-4 rounded-md border">
+                      <h4 className="text-sm font-semibold text-gray-800 mb-3">Custom Dimensions</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Height (inches) *
+                          </label>
+                          <input
+                            type="number"
+                            name="custom_height"
+                            value={formData.product.custom_height}
+                            onChange={handleProductFieldChange}
+                            required
+                            step="0.1"
+                            min="1"
+                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                              validationErrors.custom_height ? 'border-red-500' : 'border-gray-300'
+                            }`}
+                            placeholder="Enter height"
+                          />
+                          {validationErrors.custom_height && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.custom_height}</p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Width (inches) *
+                          </label>
+                          <input
+                            type="number"
+                            name="custom_width"
+                            value={formData.product.custom_width}
+                            onChange={handleProductFieldChange}
+                            required
+                            step="0.1"
+                            min="1"
+                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                              validationErrors.custom_width ? 'border-red-500' : 'border-gray-300'
+                            }`}
+                            placeholder="Enter width"
+                          />
+                          {validationErrors.custom_width && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.custom_width}</p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Depth (inches) *
+                          </label>
+                          <input
+                            type="number"
+                            name="custom_depth"
+                            value={formData.product.custom_depth}
+                            onChange={handleProductFieldChange}
+                            required
+                            step="0.1"
+                            min="1"
+                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                              validationErrors.custom_depth ? 'border-red-500' : 'border-gray-300'
+                            }`}
+                            placeholder="Enter depth"
+                          />
+                          {validationErrors.custom_depth && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.custom_depth}</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </>
               )}
             </div>
